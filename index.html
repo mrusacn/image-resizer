@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>清晰改图 - 图片尺寸调整工具</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="brand">清晰改图</p>
+          <h1>把图片改成需要的规格</h1>
+        </div>
+        <button class="ghost-button" id="resetButton" type="button" title="重新开始">
+          <span aria-hidden="true">↺</span>
+          重置
+        </button>
+      </header>
+
+      <main class="workspace">
+        <section class="preview-panel" aria-label="图片预览">
+          <label class="drop-zone" id="dropZone">
+            <input id="fileInput" type="file" accept="image/*" />
+            <span class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img">
+                <path d="M12 16V5m0 0 4 4m-4-4-4 4M5 19h14" />
+              </svg>
+            </span>
+            <strong>上传图片</strong>
+            <span>点击选择，或把图片拖到这里</span>
+          </label>
+
+          <div class="image-stage is-empty" id="imageStage">
+            <canvas id="previewCanvas" aria-label="调整后的图片预览"></canvas>
+            <p id="emptyHint">选择一张图片后，可以在这里预览新尺寸效果。</p>
+          </div>
+
+          <div class="image-meta" id="imageMeta">
+            <span>原图：--</span>
+            <span>输出：--</span>
+            <span>预计大小：--</span>
+          </div>
+        </section>
+
+        <aside class="controls-panel" aria-label="尺寸设置">
+          <section class="control-group">
+            <div class="group-heading">
+              <h2>目标尺寸</h2>
+              <label class="switch">
+                <input id="lockRatio" type="checkbox" checked />
+                <span>保持比例</span>
+              </label>
+            </div>
+
+            <div class="size-grid">
+              <label>
+                宽度 px
+                <input id="widthInput" type="number" min="1" max="12000" value="1200" />
+              </label>
+              <label>
+                高度 px
+                <input id="heightInput" type="number" min="1" max="12000" value="800" />
+              </label>
+            </div>
+
+            <div class="presets" aria-label="常用尺寸">
+              <button type="button" data-size="295,413">一寸照 295×413</button>
+              <button type="button" data-size="413,626">二寸照 413×626</button>
+              <button type="button" data-size="800,800">头像 800×800</button>
+              <button type="button" data-size="1080,1080">方图 1080×1080</button>
+              <button type="button" data-size="1920,1080">横版 1920×1080</button>
+              <button type="button" data-size="1080,1920">竖版 1080×1920</button>
+            </div>
+          </section>
+
+          <section class="control-group">
+            <h2>适配方式</h2>
+            <div class="segmented" role="group" aria-label="图片适配方式">
+              <button class="is-active" type="button" data-fit="contain">完整留白</button>
+              <button type="button" data-fit="cover">填满裁切</button>
+              <button type="button" data-fit="stretch">拉伸铺满</button>
+            </div>
+
+            <label class="color-row">
+              留白颜色
+              <input id="backgroundColor" type="color" value="#ffffff" />
+            </label>
+          </section>
+
+          <section class="control-group">
+            <h2>导出</h2>
+            <div class="format-grid">
+              <label>
+                格式
+                <select id="formatSelect">
+                  <option value="image/png">PNG 无损</option>
+                  <option value="image/jpeg">JPG 高质量</option>
+                  <option value="image/webp">WebP</option>
+                </select>
+              </label>
+              <label>
+                质量 <span id="qualityValue">100%</span>
+                <input id="qualityRange" type="range" min="70" max="100" value="100" />
+              </label>
+            </div>
+            <button class="primary-button" id="downloadButton" type="button" disabled>
+              <span aria-hidden="true">⬇</span>
+              导出图片
+            </button>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
