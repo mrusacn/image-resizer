@@ -25,6 +25,11 @@ const resetButton = document.querySelector("#resetButton");
 const imageMeta = document.querySelector("#imageMeta");
 const fileList = document.querySelector("#fileList");
 const statusLine = document.querySelector("#statusLine");
+const saveModal = document.querySelector("#saveModal");
+const closeSaveModal = document.querySelector("#closeSaveModal");
+const savePreviewImage = document.querySelector("#savePreviewImage");
+const modalShareButton = document.querySelector("#modalShareButton");
+const modalDownloadButton = document.querySelector("#modalDownloadButton");
 
 let images = [];
 let activeIndex = -1;
@@ -32,6 +37,8 @@ let activeFit = "contain";
 let lastEditedAxis = "width";
 let anchorX = 0.5;
 let anchorY = 0.5;
+let lastSaveBlob = null;
+let lastSaveFilename = "";
 
 function clampDimension(value) {
   const parsed = Number.parseInt(value, 10);
@@ -330,6 +337,28 @@ function makeFile(blob, filename) {
   }
 }
 
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result));
+    reader.addEventListener("error", reject);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function openSaveModal(blob, filename) {
+  lastSaveBlob = blob;
+  lastSaveFilename = filename;
+  savePreviewImage.src = await blobToDataUrl(blob);
+  saveModal.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeAlbumModal() {
+  saveModal.hidden = true;
+  document.body.classList.remove("modal-open");
+}
+
 async function downloadImage() {
   const item = getCurrentItem();
   if (!item) return;
@@ -361,8 +390,15 @@ async function shareImage() {
   const blob = await exportItem(item);
   const extension = getExtension(formatSelect.value);
   const filename = `${item.name}-${canvas.width}x${canvas.height}-${dpiSelect.value}dpi.${extension}`;
-  const file = makeFile(blob, filename);
+  await openSaveModal(blob, filename);
+  updateMeta(blob);
+  statusLine.textContent = "已生成相册保存预览，请在弹窗里长按图片保存。";
+}
 
+async function shareFromModal() {
+  if (!lastSaveBlob || !lastSaveFilename) return;
+
+  const file = makeFile(lastSaveBlob, lastSaveFilename);
   if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({
@@ -370,20 +406,23 @@ async function shareImage() {
         title: "清晰改图",
         text: "保存处理后的图片",
       });
-      updateMeta(blob);
-      statusLine.textContent = "已打开手机分享面板，可选择保存到相册。";
+      statusLine.textContent = "已打开系统分享面板；如果没有相册选项，请长按弹窗图片保存。";
       return;
     } catch (error) {
       if (error.name === "AbortError") {
-        statusLine.textContent = "已取消保存。";
+        statusLine.textContent = "已取消分享。";
         return;
       }
     }
   }
 
-  downloadBlob(blob, filename);
-  updateMeta(blob);
-  statusLine.textContent = "当前浏览器不支持直接保存到相册，已改为下载；请打开下载后的图片再保存到相册。";
+  statusLine.textContent = "当前浏览器不支持图片文件分享，请长按弹窗图片保存。";
+}
+
+function downloadFromModal() {
+  if (!lastSaveBlob || !lastSaveFilename) return;
+  downloadBlob(lastSaveBlob, lastSaveFilename);
+  statusLine.textContent = "已开始普通下载；如需进相册，请长按弹窗图片保存。";
 }
 
 async function downloadBatch() {
@@ -666,6 +705,12 @@ document.querySelectorAll("[data-size]").forEach((button) => {
 downloadButton.addEventListener("click", downloadImage);
 shareButton.addEventListener("click", shareImage);
 batchButton.addEventListener("click", downloadBatch);
+closeSaveModal.addEventListener("click", closeAlbumModal);
+modalShareButton.addEventListener("click", shareFromModal);
+modalDownloadButton.addEventListener("click", downloadFromModal);
+saveModal.addEventListener("click", (event) => {
+  if (event.target === saveModal) closeAlbumModal();
+});
 
 resetButton.addEventListener("click", () => {
   images = [];

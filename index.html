@@ -193,6 +193,21 @@
       </main>
     </div>
 
+    <div class="save-modal" id="saveModal" hidden>
+      <div class="save-modal__panel" role="dialog" aria-modal="true" aria-labelledby="saveModalTitle">
+        <div class="save-modal__header">
+          <h2 id="saveModalTitle">保存到手机相册</h2>
+          <button class="icon-button" id="closeSaveModal" type="button" title="关闭">×</button>
+        </div>
+        <p class="save-modal__tip">在 iPhone Chrome 里，请长按下面的图片，然后选择“存储图像”或“保存到照片”。</p>
+        <img id="savePreviewImage" alt="处理后的图片预览" />
+        <div class="save-modal__actions">
+          <button class="primary-button" id="modalShareButton" type="button">系统分享</button>
+          <button class="secondary-button" id="modalDownloadButton" type="button">普通下载</button>
+        </div>
+      </div>
+    </div>
+
     <script src="app.js"></script>
   </body>
 </html>
