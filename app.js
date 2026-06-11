@@ -19,6 +19,7 @@ const targetSizeSelect = document.querySelector("#targetSizeSelect");
 const customSizeWrap = document.querySelector("#customSizeWrap");
 const customSizeInput = document.querySelector("#customSizeInput");
 const downloadButton = document.querySelector("#downloadButton");
+const shareButton = document.querySelector("#shareButton");
 const batchButton = document.querySelector("#batchButton");
 const resetButton = document.querySelector("#resetButton");
 const imageMeta = document.querySelector("#imageMeta");
@@ -211,6 +212,7 @@ function setActiveImage(index) {
   widthInput.value = item.width;
   heightInput.value = item.height;
   downloadButton.disabled = false;
+  shareButton.disabled = false;
   batchButton.disabled = images.length === 0;
   renderFileList();
   drawPreview();
@@ -320,6 +322,14 @@ function downloadBlob(blob, filename) {
   URL.revokeObjectURL(url);
 }
 
+function makeFile(blob, filename) {
+  try {
+    return new File([blob], filename, { type: blob.type || "image/png" });
+  } catch {
+    return null;
+  }
+}
+
 async function downloadImage() {
   const item = getCurrentItem();
   if (!item) return;
@@ -339,6 +349,41 @@ async function downloadImage() {
   } else {
     statusLine.textContent = `已导出：${filename}`;
   }
+}
+
+async function shareImage() {
+  const item = getCurrentItem();
+  if (!item) return;
+
+  statusLine.textContent = "正在准备手机保存...";
+  drawPreview();
+
+  const blob = await exportItem(item);
+  const extension = getExtension(formatSelect.value);
+  const filename = `${item.name}-${canvas.width}x${canvas.height}-${dpiSelect.value}dpi.${extension}`;
+  const file = makeFile(blob, filename);
+
+  if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "清晰改图",
+        text: "保存处理后的图片",
+      });
+      updateMeta(blob);
+      statusLine.textContent = "已打开手机分享面板，可选择保存到相册。";
+      return;
+    } catch (error) {
+      if (error.name === "AbortError") {
+        statusLine.textContent = "已取消保存。";
+        return;
+      }
+    }
+  }
+
+  downloadBlob(blob, filename);
+  updateMeta(blob);
+  statusLine.textContent = "当前浏览器不支持直接保存到相册，已改为下载；请打开下载后的图片再保存到相册。";
 }
 
 async function downloadBatch() {
@@ -619,6 +664,7 @@ document.querySelectorAll("[data-size]").forEach((button) => {
 });
 
 downloadButton.addEventListener("click", downloadImage);
+shareButton.addEventListener("click", shareImage);
 batchButton.addEventListener("click", downloadBatch);
 
 resetButton.addEventListener("click", () => {
@@ -636,6 +682,7 @@ resetButton.addEventListener("click", () => {
   qualityRange.value = 100;
   qualityValue.textContent = "100%";
   downloadButton.disabled = true;
+  shareButton.disabled = true;
   batchButton.disabled = true;
   originalStage.classList.add("is-empty");
   imageStage.classList.add("is-empty");

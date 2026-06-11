@@ -487,6 +487,10 @@ input[type="range"] {
   gap: 10px;
 }
 
+.action-grid .primary-button {
+  grid-column: 1 / -1;
+}
+
 .status-line {
   min-height: 38px;
   margin: 0;
