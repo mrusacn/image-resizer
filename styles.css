@@ -268,6 +268,13 @@ h2 {
 
 .file-detail {
   margin-top: 3px;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.file-source {
+  margin-top: 3px;
   color: var(--muted);
   font-size: 12px;
 }

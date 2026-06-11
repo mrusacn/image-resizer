@@ -69,6 +69,17 @@ function getTargetBytes() {
   return Number(selected) * 1024;
 }
 
+function getFormatLabel() {
+  const option = formatSelect.selectedOptions && formatSelect.selectedOptions[0];
+  return option ? option.textContent.trim() : getExtension(formatSelect.value).toUpperCase();
+}
+
+function getTargetSizeLabel() {
+  const bytes = getTargetBytes();
+  if (!bytes) return "不限制大小";
+  return `压缩到 ${formatBytes(bytes)} 内`;
+}
+
 function setCanvasSize(targetCanvas, width, height) {
   targetCanvas.width = width;
   targetCanvas.height = height;
@@ -156,6 +167,7 @@ function drawPreview() {
   drawOriginalPreview(item);
   drawOutput(canvas, item);
   updateMeta();
+  renderFileList();
 }
 
 function updateMeta(exportBlob = null) {
@@ -186,13 +198,17 @@ function renderFileList() {
     name.className = "file-name";
     name.textContent = item.name;
     detail.className = "file-detail";
-    detail.textContent = `${item.width}×${item.height} · ${formatBytes(item.file.size)}`;
+    detail.textContent = `将导出：${clampDimension(widthInput.value)}×${clampDimension(heightInput.value)} · ${dpiSelect.value} DPI · ${getFormatLabel()} · ${getTargetSizeLabel()}`;
+    const source = document.createElement("div");
+    source.className = "file-source";
+    source.textContent = `原图：${item.width}×${item.height} · ${formatBytes(item.file.size)}`;
     button.type = "button";
     button.textContent = "预览";
     button.addEventListener("click", () => setActiveImage(index));
 
     textWrap.appendChild(name);
     textWrap.appendChild(detail);
+    textWrap.appendChild(source);
     row.appendChild(textWrap);
     row.appendChild(button);
     fileList.appendChild(row);
